@@ -1,0 +1,17 @@
+{
+  "name": "digital-kshetram-store",
+  "version": "1.0.0",
+  "description": "Secure digital products store",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "razorpay": "^2.8.6",
+    "cors": "^2.8.5"
+  },
+  "keywords": ["digital-products", "ecommerce"],
+  "author": "Digital Kshetram",
+  "license": "MIT"
+}
