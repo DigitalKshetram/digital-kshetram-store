@@ -1,13 +1,11 @@
 const express = require('express');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
-const cors = require('crypto');
-const path = require('path');
+const cors = require('cors');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
 // Your Razorpay Keys
 const razorpay = new Razorpay({
@@ -695,7 +693,7 @@ app.get('/', (req, res) => {
   `);
 });
 
-// API Routes (keep your existing API routes)
+// API Routes
 app.get('/api/products', (req, res) => {
   res.json({ success: true, data: products });
 });
@@ -712,14 +710,14 @@ app.post('/api/create-order', async (req, res) => {
     const order = await razorpay.orders.create({
       amount: product.price,
       currency: 'INR',
-      receipt: `receipt_${productId}_${Date.now()}`,
+      receipt: 'receipt_' + productId + '_' + Date.now(),
       notes: {
         productId: productId,
         productName: product.name
       }
     });
     
-    console.log(`Order created: ${order.id} for ${product.name}`);
+    console.log('Order created: ' + order.id + ' for ' + product.name);
     
     res.json({
       success: true,
@@ -765,9 +763,9 @@ app.post('/api/verify-payment', async (req, res) => {
       createdAt: new Date().toISOString()
     });
 
-    const downloadUrl = \`\${process.env.BASE_URL || 'https://digital-kshetram-store.onrender.com'}/api/download/\${token}\`;
+    const downloadUrl = (process.env.BASE_URL || 'https://digital-kshetram-store.onrender.com') + '/api/download/' + token;
     
-    console.log(\`Download token generated for payment: \${paymentId}\`);
+    console.log('Download token generated for payment: ' + paymentId);
     
     res.json({
       success: true,
@@ -807,10 +805,10 @@ app.get('/api/download/:token', async (req, res) => {
     
     const product = products[tokenData.productId];
     
-    console.log(\`File downloaded: \${product.name} by payment: \${tokenData.paymentId}\`);
+    console.log('File downloaded: ' + product.name + ' by payment: ' + tokenData.paymentId);
     
     // Redirect to Google Drive
-    res.redirect(\`https://drive.google.com/uc?export=download&id=\${product.fileId}\`);
+    res.redirect('https://drive.google.com/uc?export=download&id=' + product.fileId);
     
   } catch (error) {
     console.error('Download error:', error);
@@ -820,5 +818,5 @@ app.get('/api/download/:token', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(\`🚀 Server running on port \${PORT}\`);
+  console.log('🚀 Server running on port ' + PORT);
 });
