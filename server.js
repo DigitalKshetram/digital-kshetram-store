@@ -7,9 +7,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Your Razorpay Keys
+// Your Razorpay Keys - UPDATED WITH YOUR EXACT KEYS
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_JpStg2YIkRVnrI',
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RYqgXJKgSDEl7t',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'zKxDMje63mYX6yo7jno8N8qD'
 });
 
@@ -49,15 +49,14 @@ const products = {
 
 // Serve HTML page
 app.get('/', (req, res) => {
-  res.send(`
-<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Kshetram - Digital Products Store</title>
     <style>
-           :root {
+        :root {
             --primary: #4CAF50;
             --primary-dark: #388E3C;
             --primary-light: #C8E6C9;
@@ -632,8 +631,8 @@ app.get('/', (req, res) => {
         }
     </script>
 </body>
-</html>
-  `);
+</html>`;
+  res.send(html);
 });
 
 // API Routes
@@ -673,7 +672,7 @@ app.post('/api/create-order', async (req, res) => {
   }
 });
 
-// FIXED: Payment Verification
+// Payment Verification - UPDATED WITH YOUR SECRET
 app.post('/api/verify-payment', async (req, res) => {
   try {
     const { paymentId, orderId, signature, productId } = req.body;
@@ -683,7 +682,7 @@ app.post('/api/verify-payment', async (req, res) => {
     // Verify payment signature
     const body = orderId + "|" + paymentId;
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'YOUR_ACTUAL_RAZORPAY_SECRET_HERE')
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'zKxDMje63mYX6yo7jno8N8qD')
       .update(body)
       .digest('hex');
 
@@ -697,8 +696,7 @@ app.post('/api/verify-payment', async (req, res) => {
       console.error('Signature mismatch for payment:', paymentId);
       return res.status(400).json({ 
         success: false, 
-        error: 'Invalid payment signature',
-        details: 'Signature verification failed'
+        error: 'Invalid payment signature'
       });
     }
 
@@ -724,7 +722,7 @@ app.post('/api/verify-payment', async (req, res) => {
     });
 
     const baseUrl = process.env.BASE_URL || 'https://digital-kshetram-store.onrender.com';
-    const downloadUrl = \`\${baseUrl}/api/download/\${token}\`;
+    const downloadUrl = baseUrl + '/api/download/' + token;
     
     console.log('Download token generated:', { token, productId, downloadUrl });
     
@@ -741,8 +739,7 @@ app.post('/api/verify-payment', async (req, res) => {
     console.error('Payment verification error:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Payment verification failed',
-      details: error.message 
+      error: 'Payment verification failed'
     });
   }
 });
@@ -790,20 +787,8 @@ app.get('/api/download/:token', async (req, res) => {
   }
 });
 
-// Debug endpoint to check tokens
-app.get('/api/debug-tokens', (req, res) => {
-  const tokens = Array.from(downloadTokens.entries()).map(([token, data]) => ({
-    token: token.substring(0, 8) + '...',
-    productId: data.productId,
-    used: data.used,
-    expiresIn: Math.round((data.expiresAt - Date.now()) / 60000) + ' minutes'
-  }));
-  
-  res.json({ activeTokens: tokens });
-});
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('🚀 Server running on port ' + PORT);
-  console.log('📧 Make sure RAZORPAY_KEY_SECRET is set in environment variables');
+  console.log('✅ Using Razorpay Key: rzp_live_RYqgXJKgSDEl7t');
 });
