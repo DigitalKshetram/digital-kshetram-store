@@ -9,8 +9,8 @@ app.use(express.json());
 
 // Your Razorpay Keys
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RYqgXJKgSDEl7t',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'YOUR_RAZORPAY_SECRET_HERE'
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_JpStg2YIkRVnrI',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'zKxDMje63mYX6yo7jno8N8qD'
 });
 
 const downloadTokens = new Map();
@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Kshetram - Digital Products Store</title>
     <style>
-        :root {
+           :root {
             --primary: #4CAF50;
             --primary-dark: #388E3C;
             --primary-light: #C8E6C9;
@@ -436,13 +436,7 @@ app.get('/', (req, res) => {
                 <p class="note">Link valid for 15 minutes • Thanks For shopping at Digital Kshetram</p>
             </div>
             
-            <a href="#" class="back-btn" id="success-back-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"/>
-                    <polyline points="12 19 5 12 12 5"/>
-                </svg>
-                Back to Store
-            </a>
+            <a href="#" class="back-btn" id="success-back-btn">Back to Store</a>
         </div>
 
         <div id="failed-page" class="failed-container hidden">
@@ -450,13 +444,7 @@ app.get('/', (req, res) => {
             <p>We're sorry, but your payment could not be processed.</p>
             <p>Please try again or contact support if the problem persists.</p>
             
-            <a href="#" class="back-btn" id="failed-back-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"/>
-                    <polyline points="12 19 5 12 12 5"/>
-                </svg>
-                Back to Store
-            </a>
+            <a href="#" class="back-btn" id="failed-back-btn">Back to Store</a>
         </div>
     </div>
 
@@ -464,7 +452,7 @@ app.get('/', (req, res) => {
     <script>
         const CONFIG = {
             API_BASE_URL: '/api',
-            RAZORPAY_KEY: 'rzp_live_JpStg2YIkRVnrI'
+            RAZORPAY_KEY: 'rzp_live_RYqgXJKgSDEl7t'
         };
 
         let products = {};
@@ -477,55 +465,40 @@ app.get('/', (req, res) => {
         async function loadProducts() {
             try {
                 showLoading();
-                hideError();
-                
                 const response = await fetch('/api/products');
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch products');
-                }
-                
                 const result = await response.json();
                 
                 if (result.success) {
                     products = result.data;
                     renderProducts();
                     showStorePage();
-                } else {
-                    throw new Error(result.error);
                 }
             } catch (error) {
-                console.error('Error loading products:', error);
-                showError('Failed to load products. Please refresh the page.');
+                showError('Failed to load products');
             }
         }
 
         function renderProducts() {
             const grid = document.getElementById('product-grid');
-            grid.innerHTML = '';
+            let html = '';
             
             Object.entries(products).forEach(([id, product]) => {
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = \`
-                    <div class="product-image-container">
-                        <img src="\${product.image}" alt="\${product.name}" loading="lazy">
-                    </div>
-                    <div class="product-info">
-                        <h3>\${product.name}</h3>
-                        <p>\${product.description}</p>
-                        <p class="price">\${(product.price / 100).toFixed(2)}</p>
-                        <button class="buy-btn" data-id="\${id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 2v20M12 2l7 7M12 2L5 9"/>
-                            </svg>
-                            Buy Now
-                        </button>
+                html += \`
+                    <div class="product-card">
+                        <div class="product-image-container">
+                            <img src="\${product.image}" alt="\${product.name}" loading="lazy">
+                        </div>
+                        <div class="product-info">
+                            <h3>\${product.name}</h3>
+                            <p>\${product.description}</p>
+                            <p class="price">\${(product.price / 100).toFixed(2)}</p>
+                            <button class="buy-btn" data-id="\${id}">Buy Now</button>
+                        </div>
                     </div>
                 \`;
-                grid.appendChild(card);
             });
             
+            grid.innerHTML = html;
             initEventListeners();
         }
 
@@ -540,72 +513,47 @@ app.get('/', (req, res) => {
 
         async function initiatePayment(productId) {
             try {
-                const product = products[productId];
-                if (!product) {
-                    alert('Product not found');
-                    return;
-                }
-
                 const response = await fetch('/api/create-order', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ productId })
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to create order');
-                }
-
                 const result = await response.json();
-
-                if (!result.success) {
-                    throw new Error(result.error);
-                }
-
-                const options = {
-                    key: CONFIG.RAZORPAY_KEY,
-                    amount: result.data.amount,
-                    currency: result.data.currency,
-                    name: "Digital Kshetram",
-                    description: result.data.productName,
-                    order_id: result.data.orderId,
-                    handler: async function(response) {
-                        await verifyPayment(response, productId);
-                    },
-                    prefill: {
-                        name: "",
-                        email: "",
-                        contact: ""
-                    },
-                    theme: {
-                        color: "#4CAF50"
-                    }
-                };
-
-                const rzp = new Razorpay(options);
                 
-                rzp.on('payment.failed', function(response) {
-                    console.error('Payment failed:', response.error);
-                    showFailedPage();
-                });
+                if (result.success) {
+                    const options = {
+                        key: CONFIG.RAZORPAY_KEY,
+                        amount: result.data.amount,
+                        currency: "INR",
+                        name: "Digital Kshetram",
+                        description: result.data.productName,
+                        order_id: result.data.orderId,
+                        handler: function(response) {
+                            verifyPayment(response, productId);
+                        },
+                        theme: { color: "#4CAF50" }
+                    };
 
-                rzp.open();
-
+                    const rzp = new Razorpay(options);
+                    rzp.on('payment.failed', function(response) {
+                        console.log('Payment failed:', response);
+                        showFailedPage();
+                    });
+                    rzp.open();
+                }
             } catch (error) {
-                console.error('Payment initiation error:', error);
-                alert('Failed to initiate payment. Please try again.');
+                alert('Payment initiation failed');
             }
         }
 
         async function verifyPayment(paymentResponse, productId) {
             try {
+                console.log('Verifying payment:', paymentResponse);
+                
                 const response = await fetch('/api/verify-payment', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         paymentId: paymentResponse.razorpay_payment_id,
                         orderId: paymentResponse.razorpay_order_id,
@@ -615,15 +563,16 @@ app.get('/', (req, res) => {
                 });
 
                 const result = await response.json();
-
+                console.log('Verification result:', result);
+                
                 if (result.success) {
                     showSuccessPage(result.data.productName, result.data.downloadUrl);
                 } else {
+                    console.error('Verification failed:', result.error);
                     showFailedPage();
                 }
-
             } catch (error) {
-                console.error('Payment verification error:', error);
+                console.error('Verification error:', error);
                 showFailedPage();
             }
         }
@@ -642,23 +591,15 @@ app.get('/', (req, res) => {
 
         function showLoading() {
             document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('error-message').classList.add('hidden');
             document.getElementById('store-page').classList.add('hidden');
             document.getElementById('success-page').classList.add('hidden');
             document.getElementById('failed-page').classList.add('hidden');
-        }
-
-        function hideError() {
-            document.getElementById('error-message').classList.add('hidden');
         }
 
         function showError(message) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('error-message').classList.remove('hidden');
             document.getElementById('error-message').querySelector('p').textContent = message;
-            document.getElementById('store-page').classList.add('hidden');
-            document.getElementById('success-page').classList.add('hidden');
-            document.getElementById('failed-page').classList.add('hidden');
         }
 
         function showStorePage() {
@@ -678,6 +619,8 @@ app.get('/', (req, res) => {
             
             document.getElementById('purchased-product').textContent = productName;
             document.getElementById('download-link').href = downloadUrl;
+            
+            console.log('Success page shown with download URL:', downloadUrl);
         }
 
         function showFailedPage() {
@@ -710,14 +653,10 @@ app.post('/api/create-order', async (req, res) => {
     const order = await razorpay.orders.create({
       amount: product.price,
       currency: 'INR',
-      receipt: 'receipt_' + productId + '_' + Date.now(),
-      notes: {
-        productId: productId,
-        productName: product.name
-      }
+      receipt: 'receipt_' + productId + '_' + Date.now()
     });
     
-    console.log('Order created: ' + order.id + ' for ' + product.name);
+    console.log('Order created:', order.id, 'for product:', productId);
     
     res.json({
       success: true,
@@ -734,23 +673,43 @@ app.post('/api/create-order', async (req, res) => {
   }
 });
 
+// FIXED: Payment Verification
 app.post('/api/verify-payment', async (req, res) => {
   try {
     const { paymentId, orderId, signature, productId } = req.body;
     
+    console.log('Verification request:', { paymentId, orderId, productId });
+    
     // Verify payment signature
-    const generatedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'YOUR_RAZORPAY_SECRET_HERE')
-      .update(orderId + "|" + paymentId)
+    const body = orderId + "|" + paymentId;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'YOUR_ACTUAL_RAZORPAY_SECRET_HERE')
+      .update(body)
       .digest('hex');
 
-    if (generatedSignature !== signature) {
-      console.error('Invalid signature for payment:', paymentId);
-      return res.status(400).json({ success: false, error: 'Invalid payment signature' });
+    console.log('Signature verification:', {
+      received: signature,
+      expected: expectedSignature,
+      match: signature === expectedSignature
+    });
+
+    if (expectedSignature !== signature) {
+      console.error('Signature mismatch for payment:', paymentId);
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid payment signature',
+        details: 'Signature verification failed'
+      });
     }
 
     const product = products[productId];
-    
+    if (!product) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Product not found after payment' 
+      });
+    }
+
     // Generate secure download token
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = Date.now() + (15 * 60 * 1000); // 15 minutes
@@ -758,14 +717,16 @@ app.post('/api/verify-payment', async (req, res) => {
     downloadTokens.set(token, {
       productId,
       paymentId,
+      orderId,
       expiresAt,
       used: false,
       createdAt: new Date().toISOString()
     });
 
-    const downloadUrl = (process.env.BASE_URL || 'https://digital-kshetram-store.onrender.com') + '/api/download/' + token;
+    const baseUrl = process.env.BASE_URL || 'https://digital-kshetram-store.onrender.com';
+    const downloadUrl = \`\${baseUrl}/api/download/\${token}\`;
     
-    console.log('Download token generated for payment: ' + paymentId);
+    console.log('Download token generated:', { token, productId, downloadUrl });
     
     res.json({
       success: true,
@@ -775,9 +736,14 @@ app.post('/api/verify-payment', async (req, res) => {
         expiresIn: '15 minutes'
       }
     });
+    
   } catch (error) {
     console.error('Payment verification error:', error);
-    res.status(500).json({ success: false, error: 'Payment verification failed' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Payment verification failed',
+      details: error.message 
+    });
   }
 });
 
@@ -786,15 +752,20 @@ app.get('/api/download/:token', async (req, res) => {
     const { token } = req.params;
     const tokenData = downloadTokens.get(token);
     
+    console.log('Download request for token:', token);
+    
     if (!tokenData) {
+      console.log('Token not found:', token);
       return res.status(404).json({ error: 'Download link expired or invalid' });
     }
     
     if (tokenData.used) {
+      console.log('Token already used:', token);
       return res.status(400).json({ error: 'Download link already used' });
     }
     
     if (Date.now() > tokenData.expiresAt) {
+      console.log('Token expired:', token);
       downloadTokens.delete(token);
       return res.status(410).json({ error: 'Download link expired' });
     }
@@ -805,7 +776,10 @@ app.get('/api/download/:token', async (req, res) => {
     
     const product = products[tokenData.productId];
     
-    console.log('File downloaded: ' + product.name + ' by payment: ' + tokenData.paymentId);
+    console.log('File download approved:', { 
+      product: product.name, 
+      paymentId: tokenData.paymentId 
+    });
     
     // Redirect to Google Drive
     res.redirect('https://drive.google.com/uc?export=download&id=' + product.fileId);
@@ -816,7 +790,20 @@ app.get('/api/download/:token', async (req, res) => {
   }
 });
 
+// Debug endpoint to check tokens
+app.get('/api/debug-tokens', (req, res) => {
+  const tokens = Array.from(downloadTokens.entries()).map(([token, data]) => ({
+    token: token.substring(0, 8) + '...',
+    productId: data.productId,
+    used: data.used,
+    expiresIn: Math.round((data.expiresAt - Date.now()) / 60000) + ' minutes'
+  }));
+  
+  res.json({ activeTokens: tokens });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('🚀 Server running on port ' + PORT);
+  console.log('📧 Make sure RAZORPAY_KEY_SECRET is set in environment variables');
 });
